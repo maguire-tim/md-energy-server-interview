@@ -11,21 +11,30 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <string.h>
 
 #include <stdio.h>
 #include <errno.h>
 
 // Defines
 
-#define COMM_PORT       8080
-#define COMM_DOMAIN     AF_INET     // IPv4
-#define COMM_TYPE       SOCK_STREAM // TCP
-#define ADDRESS         INADDR_ANY
-#define BACKLOG_SIZE    100
+#define COMM_PORT        8080
+#define COMM_DOMAIN      AF_INET     // IPv4
+#define COMM_TYPE        SOCK_STREAM // TCP
+#define ADDRESS          INADDR_ANY
+#define BACKLOG_SIZE     100
+
+#define HTTP_HEADER_SIZE 64 // Allows for 3-digit content length
+#define MAX_MESSAGE_DATA_SIZE 128
+#define MAX_MESSAGE_SIZE (HTTP_HEADER_SIZE + MAX_MESSAGE_DATA_SIZE)
 
 // Variables
 
 static struct sockaddr_in Address, Client;
+
+// Local Function Declarations
+
+static void CreateHttpMessage(char * data, int dataSize, char * message);
 
 // Functions
 
@@ -41,7 +50,6 @@ void Driver_SocketInit(void)
 int Driver_SocketStart(void)
 {
     // Create socket
-    //printf("    Creating socket...\n");
     int socketDesc = socket(COMM_DOMAIN, COMM_TYPE, 0);
     // Return error if creating socket fails
     if (socketDesc == 0) return -1;
@@ -50,16 +58,13 @@ int Driver_SocketStart(void)
     int set = 1;
     if (setsockopt(socketDesc, SOL_SOCKET, SO_REUSEADDR, &set, sizeof(set)) < 0) return -1;
 
-    //printf("    Binding socket...\n");
     // Bind socket to specified port. Return error if bind fails
     if (bind(socketDesc, (struct sockaddr *) &Address, sizeof(Address)) < 0)
     {
         printf("errno = %d\n", errno);
         return -1;
     }
-    //printf("    Address: %d, %d, %d\n", Address.sin_family, Address.sin_addr.s_addr, Address.sin_port);
 
-    //printf("    Entering listen...\n");
     // Enter listen mode. Return false if this fails
     if (listen(socketDesc, BACKLOG_SIZE) < 0) return -1;
     else return socketDesc;
@@ -76,7 +81,28 @@ int Driver_SocketAwaitConnection(int socketDescriptor)
     {
         printf("errno = %d\n", errno);
     }
-    send(connectedSocketDesc, httpHeader, sizeof(httpHeader), 0);
 
     return connectedSocketDesc;
+}
+
+// Appends HTTP header to the data to send and sends the message. Returns operation status.
+int Driver_SocketSendMessage(int socketDescriptor, char * data, int dataSize)
+{
+    char message[MAX_MESSAGE_SIZE];
+    CreateHttpMessage(data, dataSize, message);
+    return write(socketDescriptor, message, strlen(message));
+}
+
+// Receives incoming message into the specified buffer, up to bufferSize. Returns operation status.
+int Driver_SocketReceiveMessage(int socketDescriptor, char * buffer, int bufferSize)
+{
+    return recv(socketDescriptor, buffer, bufferSize, 0);
+}
+
+// Adds appropriate HTTP header to a data string and stores it in message.
+static void CreateHttpMessage(char * data, int dataSize, char * message)
+{
+    // Put header
+    sprintf(message, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: %d\n\n", dataSize);
+    strcat(message, data);
 }

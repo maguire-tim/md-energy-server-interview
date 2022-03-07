@@ -1,10 +1,10 @@
 /**********************************************
- * DriverSocket.h
- * Header for socket driver.
+ * DriverSensorData.h
+ * Header for sensor data driver.
  **********************************************/
 
-#ifndef _DRIVERSOCKET_H_
-#define _DRIVERSOCKET_H_
+#ifndef _DRIVERSENSORDATA_H_
+#define _DRIVERSENSORDATA_H_
 
 extern void Driver_SocketInit(void);
 extern int  Driver_SocketStart(void);

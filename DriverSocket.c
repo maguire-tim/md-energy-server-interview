@@ -12,9 +12,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
-
 #include <stdio.h>
-#include <errno.h>
 
 // Defines
 
@@ -64,6 +62,12 @@ int Driver_SocketStart(void)
     // Enter listen mode. Return false if this fails
     if (listen(socketDesc, BACKLOG_SIZE) < 0) return -1;
     else return socketDesc;
+}
+
+// Closes the specified socket. Returns 0 on success or -1 if an error occurs.
+int Driver_SocketStop(int socketDescriptor)
+{
+    return close(socketDescriptor);
 }
 
 // Waits for a connection and returns the new connected socket's descriptor. This is a blocking function.

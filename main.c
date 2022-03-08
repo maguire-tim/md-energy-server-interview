@@ -5,9 +5,11 @@
 
 /*
     List of assumptions about user input:
+    - The input from the client should be in the format of "starttime=x&endtime=y".
     - If the client sends any input not in the specified format, the result returned will be -1 kWh.
     - If the client sends start/end times that are invalid (end before start, or either time out of
         bounds of the data), the result returnd will be -1 kWh.
+    - Only one client will attempt to communicate with the server at a time.
     (Assumptions about data in sensors.json are located in DriverSensorData.c)
 */
 
@@ -57,5 +59,6 @@ int main(void)
         sprintf(txBuffer, "{\"results\":{\"energy\":%lf,\"units\":\"kWh\"}}\n", result);
         Driver_SocketSendMessage(connectedSocketDesc, txBuffer, strlen(txBuffer));
     }
+    Driver_SocketStop(socketDesc);
     return 0;
 }

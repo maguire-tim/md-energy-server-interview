@@ -8,7 +8,7 @@
     - Follows the format of [{"current": i.i, "voltage": v.v, "time": t}, ... ]
     - Current is in amps, voltage is in volts, time is a timestamp in seconds
     - The number of datapoints is less than the value defined as MAX_DATAPOINT_COUNT
-    - Current and voltage values will fit in a double, time values will fit in a long int
+    - Current and voltage values will be stored in a double, time values will be stored in a long int
     - The current and voltage values provided at each datapoint are assumed constant until the time of the next datapoint.
     - The datapoints are sorted in order of increasing time
 */
@@ -19,8 +19,6 @@
 
 #include <stdio.h>
 #include <string.h>
-
-#include <errno.h>
 
 // Defines
 

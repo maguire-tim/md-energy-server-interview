@@ -59,11 +59,7 @@ int Driver_SocketStart(void)
     if (setsockopt(socketDesc, SOL_SOCKET, SO_REUSEADDR, &set, sizeof(set)) < 0) return -1;
 
     // Bind socket to specified port. Return error if bind fails
-    if (bind(socketDesc, (struct sockaddr *) &Address, sizeof(Address)) < 0)
-    {
-        printf("errno = %d\n", errno);
-        return -1;
-    }
+    if (bind(socketDesc, (struct sockaddr *) &Address, sizeof(Address)) < 0) return -1;
 
     // Enter listen mode. Return false if this fails
     if (listen(socketDesc, BACKLOG_SIZE) < 0) return -1;
@@ -77,10 +73,6 @@ int Driver_SocketAwaitConnection(int socketDescriptor)
     char httpHeader[] = "HTTP/1.1 200 OK\r\n\n";
     int addrSize = sizeof(Client);
     int connectedSocketDesc = accept(socketDescriptor, (struct sockaddr *) &Client, (socklen_t *) &addrSize);
-    if (connectedSocketDesc == -1)
-    {
-        printf("errno = %d\n", errno);
-    }
 
     return connectedSocketDesc;
 }

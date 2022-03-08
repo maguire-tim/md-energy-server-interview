@@ -6,10 +6,18 @@
 #ifndef _DRIVERSENSORDATA_H_
 #define _DRIVERSENSORDATA_H_
 
-extern void Driver_SocketInit(void);
-extern int  Driver_SocketStart(void);
-extern int  Driver_SocketAwaitConnection(int socketDescriptor);
-extern int  Driver_SocketSendMessage(int socketDescriptor, char * data, int dataSize);
-extern int  Driver_SocketReceiveMessage(int socketDescriptor, char * buffer, int bufferSize);
+// Structs
+
+typedef struct _SENSOR_DATA
+{
+    double power;
+    long   time;
+} sensor_data;
+
+// Function Prototypes
+
+extern int    Driver_SensorDataInit(void);
+extern double Driver_SensorDataGetEnergyKwh(long startTime, long endTime);
+extern double Driver_SensorDataGetEnergyKwhFromString(char * inputString, int size);
 
 #endif

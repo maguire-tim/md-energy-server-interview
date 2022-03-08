@@ -96,16 +96,18 @@ int Driver_SensorDataInit(void)
 }
 
 // Search for the start and end datapoints, then calculate and return the energy consumption between them.
+// Returns -1 if inputs are invalid.
 double Driver_SensorDataGetEnergyKwh(long startTime, long endTime)
 {
     if (NumDatapoints < 2) return -1; // Data wasn't loaded or not enough datapoints
+    if (endTime < startTime) return -1; // Invalid inputs
 
     int startDatapointIndex;
     int endDatapointIndex;
-    // Find starting datapoint, binary search
     int lowerBound = 0;
-    int upperBound = NumDatapoints;
+    int upperBound = NumDatapoints + 1;
     int prevIndex  = 0;
+    // Find starting datapoint, binary search
     while (1)
     {
         int index = (upperBound + lowerBound) / 2;
@@ -129,6 +131,8 @@ double Driver_SensorDataGetEnergyKwh(long startTime, long endTime)
             }
             else
             {
+                if (index == NumDatapoints) return -1; // Requested start time is after last datapoint
+
                 // Start with this datapoint's power value
                 startDatapointIndex = index;
                 break;
@@ -151,7 +155,7 @@ double Driver_SensorDataGetEnergyKwh(long startTime, long endTime)
 
     // Repeat process for end datapoint
     lowerBound = startDatapointIndex;
-    upperBound = NumDatapoints;
+    upperBound = NumDatapoints + 1;
     prevIndex = 0;
     while (1)
     {
@@ -168,14 +172,13 @@ double Driver_SensorDataGetEnergyKwh(long startTime, long endTime)
             // Exact time match not found
             if (SensorDataList[index].time > endTime)
             {
-                if (index == 0) return -1; // Requested end time is before start time
-                
                 // Start with previous datapoint's power value
                 endDatapointIndex = index - 1;
                 break;
             }
             else
             {
+                if (index == NumDatapoints) return -1; // Requested end time is after last datapoint
                 // Start with this datapoint's power value
                 endDatapointIndex = index;
                 break;
@@ -202,21 +205,23 @@ double Driver_SensorDataGetEnergyKwh(long startTime, long endTime)
     {
         double thisPower = SensorDataList[index].power;
         long thisTime = SensorDataList[index].time;
+        long nextTime = SensorDataList[index + 1].time;
 
         if ((index == startDatapointIndex) && (thisTime != startTime))
         {
             // Edge case if startTime is between 2 datapoints
-            energySum += thisPower * (SensorDataList[index + 1].time - startTime);
+            energySum += thisPower * (nextTime - startTime);
         }
         else if ((index == endDatapointIndex - 1) && (SensorDataList[endDatapointIndex].time != endTime))
         {
             // Edge case if endTime is between 2 datapoints
-            energySum += thisPower * (SensorDataList[index + 1].time - thisTime); // Add the normal energy between last 2 datapoints first
+            energySum += thisPower * (nextTime - thisTime); // Add the normal energy between last 2 datapoints first
             energySum += SensorDataList[endDatapointIndex].power * (endTime - SensorDataList[endDatapointIndex].time); // Add remainder
         }
         else
         {
-            energySum += (thisPower + SensorDataList[index+1].power) / 2 * (SensorDataList[index + 1].time - thisTime);
+            // Normal case
+            energySum += thisPower * (nextTime - thisTime);
         }
     }
 

@@ -3,6 +3,14 @@
  * Entry point of the program.
  **********************************************/
 
+/*
+    List of assumptions about user input:
+    - If the client sends any input not in the specified format, the result returned will be -1 kWh.
+    - If the client sends start/end times that are invalid (end before start, or either time out of
+        bounds of the data), the result returnd will be -1 kWh.
+    (Assumptions about data in sensors.json are located in DriverSensorData.c)
+*/
+
 // Includes
 #include <stdio.h>
 #include <string.h>
@@ -35,8 +43,7 @@ int main(void)
         int connectedSocketDesc = Driver_SocketAwaitConnection(socketDesc);
         if (connectedSocketDesc < 0)
         {
-            printf("\nProgram ended due to error connecting to client.\n");
-            return -1;
+            printf("Error connecting to client.\n");
         }
         // Receive and store incoming message
         char rxBuffer[RX_BUFFER_SIZE];
